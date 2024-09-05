@@ -4,7 +4,7 @@ import io
 from fastapi import APIRouter, Depends, File, UploadFile, HTTPException
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-from api.database import get_db, engine, Base
+from api.database import get_db, engine, Base, search_documents
 from api.models import Document
 from sqlalchemy.exc import IntegrityError
 
@@ -53,3 +53,8 @@ async def test_db(db: Session = Depends(get_db)):
             return {"status": "failed"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database test failed: {str(e)}")
+    
+@router.get("/search/")
+def search(query: str, db: Session = Depends(get_db)):
+    results = search_documents(db, query)
+    return results
