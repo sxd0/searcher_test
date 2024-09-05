@@ -1,37 +1,55 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
-from sqlalchemy.orm import Session
-from sqlalchemy import text
-from .database import get_db
-from .models import Document
 import csv
-from io import StringIO
+from datetime import datetime
+import io
+from fastapi import APIRouter, Depends, File, UploadFile, HTTPException
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+from api.database import get_db, engine, Base
+from api.models import Document
+from sqlalchemy.exc import IntegrityError
 
 router = APIRouter()
 
-@router.post("/import")
+
+
+@router.post("/import-csv/")
 async def import_csv(file: UploadFile = File(...), db: Session = Depends(get_db)):
     try:
-        file_content = await file.read()
-        file_content = file_content.decode('utf-8')
-        csv_reader = csv.DictReader(StringIO(file_content))
+        contents = await file.read()
+        csv_file = io.StringIO(contents.decode('utf-8'))
+        reader = csv.reader(csv_file)
         
-        for row in csv_reader:
-            document = Document(
-                rubrics=row['rubrics'].split(','),
-                text=row['text'],
-                created_date=row['created_date']
-            )
+        next(reader)
+        
+        for row in reader:
+            if len(row) != 4:
+                continue
+            
+            rubrics = row[0]
+            text = row[1]
+            created_date_str = row[2]
+            try:
+                created_date = datetime.strptime(created_date_str, "%Y-%m-%d %H:%M:%S")
+            except ValueError:
+                continue
+            
+            document = Document(rubrics=rubrics, text=text, created_date=created_date)
             db.add(document)
         
         db.commit()
         return {"status": "success"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Error processing file: {str(e)}")
 
-@router.get("/test-db")
+@router.get("/test-db/")
 async def test_db(db: Session = Depends(get_db)):
     try:
-        result = db.execute(text("SELECT 1")).fetchone()
-        return {"status": "success", "result": result[0]}
+        query = text("SELECT 1")
+        result = db.execute(query).scalar()
+        if result == 1:
+            return {"status": "success"}
+        else:
+            return {"status": "failed"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Database test failed: {str(e)}")

@@ -1,5 +1,8 @@
-from sqlalchemy import Column, Integer, String, DateTime, ARRAY
-from .database import Base
+from sqlalchemy import Column, Integer, String, TIMESTAMP, ARRAY
+from sqlalchemy.ext.declarative import declarative_base
+import datetime
+
+Base = declarative_base()
 
 class Document(Base):
     __tablename__ = "documents"
@@ -7,4 +10,4 @@ class Document(Base):
     id = Column(Integer, primary_key=True, index=True)
     rubrics = Column(ARRAY(String), nullable=False)
     text = Column(String, nullable=False)
-    created_date = Column(DateTime, nullable=False)
+    created_date = Column(TIMESTAMP, nullable=False, default=datetime.datetime.utcnow)
