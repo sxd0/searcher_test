@@ -2,11 +2,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-
-DATABASE_URL = "postgresql://doc_user:123456@db:5432/documents_db"
+DATABASE_URL = "postgresql://doc_user:123456@localhost:5432/documents_db"
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 Base = declarative_base()
 
 def get_db():
@@ -16,3 +16,5 @@ def get_db():
     finally:
         db.close()
 
+def init_db():
+    Base.metadata.create_all(bind=engine)
