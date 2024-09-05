@@ -8,7 +8,7 @@ from api.database import get_db, engine, Base, search_documents
 from api.models import Document
 from sqlalchemy.exc import IntegrityError
 
-router = APIRouter()
+router = APIRouter() 
 
 
 
