@@ -10,8 +10,6 @@ DATABASE_URL = "postgresql://doc_user:123456@localhost:5432/documents_db"
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-
-
 def get_db():
     db = SessionLocal()
     try:
@@ -21,9 +19,6 @@ def get_db():
 
 def init_db():
     Base.metadata.create_all(bind=engine)
-
-
-
 
 
 def search_documents(db: Session, query: str):

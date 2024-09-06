@@ -20,3 +20,4 @@ services:
       - db
     environment:
       - DATABASE_URL=postgresql://doc_user:123456@db/documents_db
+

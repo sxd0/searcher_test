@@ -2,6 +2,7 @@ import csv
 from datetime import datetime
 import io
 from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, status
+from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from api.database import get_db, engine, Base, search_documents
@@ -70,3 +71,10 @@ def delete_document(document_id: int, db: Session = Depends(get_db)):
     db.commit()
     
     return {"detail": "Document successfully deleted"}
+
+@router.get("/documents/{document_id}")
+def get_document(document_id: int, db: Session = Depends(get_db)):
+    document = db.query(Document).filter(Document.id == document_id).first()
+    if document is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return document
