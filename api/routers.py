@@ -1,7 +1,7 @@
 import csv
 from datetime import datetime
 import io
-from fastapi import APIRouter, Depends, File, UploadFile, HTTPException
+from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, status
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from api.database import get_db, engine, Base, search_documents
@@ -58,3 +58,15 @@ async def test_db(db: Session = Depends(get_db)):
 def search(query: str, db: Session = Depends(get_db)):
     results = search_documents(db, query)
     return results
+
+@router.delete("/documents/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_document(document_id: int, db: Session = Depends(get_db)):
+    document = db.query(Document).filter(Document.id == document_id).first()
+    
+    if document is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    db.delete(document)
+    db.commit()
+    
+    return {"detail": "Document successfully deleted"}
